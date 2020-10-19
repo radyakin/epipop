@@ -1,0 +1,109 @@
+VERSION 16.0
+
+POSITION . . 410 250
+
+
+LIST refdatalist
+BEGIN
+  IMSS_Mexico
+END
+
+DIALOG params, label("epi_pop") tabtitle("Model parameters")
+BEGIN
+		   
+  TEXT     tx_r0      10  10  390  ., label("R0:")
+  EDIT     ed_r0     @       +20     @       .,              ///
+        numonly option(r0) default(3.00)
+		
+
+  TEXT     tx_theta      10  +25  390  ., label("Theta:")		   
+  EDIT     ed_theta     @       +20     @       .,              ///
+        numonly option(theta) default(0.00)
+		
+  TEXT     tx_c1	@	+25	390	., label("C1:")
+  EDIT     ed_c1    @   +20 @   ., numonly option(c1) default(0.00)	
+  
+  TEXT     tx_c2	@	+25	390	., label("C2:")
+  EDIT     ed_c2    @   +20 @   ., numonly option(c2) default(0.00)	
+  
+  TEXT     tx_c3	@	+25	390	., label("C3:")
+  EDIT     ed_c3    @   +20 @   ., numonly option(c3) default(3.00)	
+  
+  
+END
+
+OK ok1,      label("OK")
+CANCEL can1, label("Cancel")
+SUBMIT sub1, label("Submit")
+HELP hlp1,   view("help seir")
+RESET res1
+COPY copy1
+
+DIALOG popdata, tabtitle("Population data")
+BEGIN
+  TEXT     tx_age      10  10  390  ., label("Age variable:")		   
+  VARNAME  ed_age     @       +20     @       .,              ///
+        option(agevar) ///
+		tooltip("Variable containing age of individuals (in years).")
+
+  TEXT     tx_sex      10  +25  390  ., label("Sex variable:")		   
+  VARNAME  ed_sex     @       +20     @       .,              ///
+        option(sexvar) ///
+		tooltip("Categorical variable containing the sex of individuals.")
+
+  TEXT     tx_malecode      10  +25  390  ., label("Numerical code of males:")		   
+  SPINNER     ed_malecode     @       +20     @       .,              ///
+        option(malecode) default(1)		///
+		tooltip("The numerical code corresponding to MALES in the sex variable.")
+
+  TEXT     tx_femalecode      10  +25  390  ., label("Numerical code of females:")		   
+  SPINNER     ed_femalecode     @       +20     @       .,              ///
+        option(femalecode) default(2)		///
+		tooltip("The numerical code corresponding to FEMALES in the sex variable.")
+
+END
+
+DIALOG otheropt, tabtitle("Other")
+BEGIN
+
+  TEXT tx_refdata    10  10 390 ., label("Pick reference data")
+  COMBOBOX ed_refdata @ +20 @   ., contents(refdatalist) dropdownlist option(refdata)
+
+  TEXT     tx_tmax   10 +25 390 ., label("Duration of simulation (days):")  
+  SPINNER  sp_tmax    @ +20 @   ., ///
+           option(tmax) default(200) max(365) ///
+		   tooltip("Duration of simulation (in days).")
+
+  TEXT tx_report     10 +25 390 ., label("Filename for report in PDF:")  
+  FILE fi_report     10 +20 390 ., label("Browse ...") ///
+       save dialogtitle("Specify filename for saving the report in PDF") ///
+	   filter("PDF documents|*.pdf|All Files|*.*") option(report) ///
+	   tooltip("Optionally specify filename for saving the report in PDF")
+END
+
+
+
+
+
+PROGRAM command
+BEGIN
+    put "epi_popdb "
+	beginoptions
+	   optionarg params.ed_r0
+	   optionarg params.ed_theta
+	   optionarg params.ed_c1
+	   optionarg params.ed_c2
+	   optionarg params.ed_c3
+	   
+	   optionarg popdata.ed_age
+	   optionarg popdata.ed_sex
+	   optionarg popdata.ed_malecode
+	   optionarg popdata.ed_femalecode	   
+	   
+	   optionarg otheropt.ed_refdata
+	   optionarg otheropt.sp_tmax
+	   optionarg otheropt.fi_report
+	endoptions
+END
+
+// END OF FILE
