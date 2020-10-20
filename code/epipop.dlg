@@ -74,6 +74,11 @@ BEGIN
            option(tmax) default(200) max(365) ///
 		   tooltip("Duration of simulation (in days).")
 
+  TEXT     tx_rept   10 +25 390 ., label("Number of repetitions, 1 for deterministic, N for stochastic model:")  
+  SPINNER  sp_rept    @ +20 @   ., ///
+           option(repeat) default(1) max(9999) ///
+		   tooltip("Number of repetitions for stochastic model.")
+
   TEXT tx_report     10 +25 390 ., label("Filename for report in PDF:")  
   FILE fi_report     10 +20 390 ., label("Browse ...") ///
        save dialogtitle("Specify filename for saving the report in PDF") ///
@@ -87,7 +92,7 @@ END
 
 PROGRAM command
 BEGIN
-    put "epipopdb "
+    put "epipop dialog "
 	beginoptions
 	   optionarg params.ed_r0
 	   optionarg params.ed_theta
@@ -102,6 +107,7 @@ BEGIN
 	   
 	   optionarg otheropt.ed_refdata
 	   optionarg otheropt.sp_tmax
+           optionarg otheropt.sp_rept
 	   optionarg otheropt.fi_report
 	endoptions
 END

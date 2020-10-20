@@ -11,17 +11,18 @@ d
 d Distribution-Date: 20201001
 d
 d Author: Carlos M Hernandez-Suarez, Professor,
-          Universidad de Colima, Mexico
+d         Universidad de Colima, Mexico
 d         Sergiy Radyakin, Senior Economist,
 d         Development Economics Data Group, The World Bank
 d	  Paolo Verme,
 d         Fragility, Conflict and Violence, The World Bank
 d
-* COMMON FILES
+f epi_refdata_IMSS_Mexico.ado
 f epipop.ado
 f epipop.dlg
 f epipop.sthlp
-f epipopdb.ado
-f epi_refdata_IMSS_Mexico.ado
+f epipop_deterministic.ado
+f epipop_siz_at.ado
+f epipop_stochastic.ado
 f lepipop.mlib
 * END OF FILE
