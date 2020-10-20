@@ -18,10 +18,10 @@ d	  Paolo Verme,
 d         Fragility, Conflict and Violence, The World Bank
 d
 * COMMON FILES
-f epi_pop.ado
-f epi_pop.dlg
-f epi_pop.sthlp
-f epi_popdb.ado
+f epipop.ado
+f epipop.dlg
+f epipop.sthlp
+f epipopdb.ado
 f epi_refdata_IMSS_Mexico.ado
 f lepipop.mlib
 * END OF FILE

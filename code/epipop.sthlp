@@ -1,6 +1,6 @@
 {smcl}
 {* *! version 2.0.0  02oct2020}{...}
-{cmd:help epi_pop}
+{cmd:help epipop}
 {hline}
 
 {title:Title}
@@ -145,7 +145,7 @@ old.{p_end}
     {hline}
 {pstd}Simulation{p_end}
 
-{phang2} {cmd:. epi_pop} , popsize(100000) popstruct(F) /// {p_end}
+{phang2} {cmd:. epipop simulate deterministic} , popsize(100000) popstruct(F) /// {p_end}
 	            r0(3.0) theta(0.00) agpop(1 2 7) ///
                     tmax(200) report("C:\out\camp_report.pdf")  
 
@@ -154,7 +154,7 @@ population structure given by the matrix F, with no testing, basic reproduction
 number 3.0 over 200 days, saving the report to the file camp_report.pdf and
 grouping age groups 2..6 together in the report into one age group.{p_end}
 
-{phang2} {cmd:. epi_pop} , popsize(100000) popstruct(F) /// {p_end}
+{phang2} {cmd:. epipop simulate deterministic} , popsize(100000) popstruct(F) /// {p_end}
 	            r0(3.0) c3(3.0) theta(0.00) agpop(1 2 7) ///
                     tmax(200) report("C:\out\camp_report.pdf")  
 

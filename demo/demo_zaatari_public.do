@@ -2,6 +2,12 @@
 // This demo uses example data located online in the specified distribution repository
 
 clear all
+version 16.0
+	
+adopath ++ "..\code\"
+adopath ++ "..\..\epimodels\code"
+mata mata mlib index
+	
 import delimited "https://raw.githubusercontent.com/reachjor/reachjor.github.io/master/pop_count/data/pop_count.csv", varnames(1) clear
 
 local outfolder="C:\temp\"              // adjust this if necessary.
@@ -17,7 +23,8 @@ matrix F=r(F)
 local popsize=r(N)
 display "Population:" string(`popsize',"%8.0f")
 
-epi_pop , popsize(`popsize') popstruct("F") ///
+epipop simulate deterministic, ///
+               popsize(`popsize') popstruct("F") ///
 	           r0(3.0) theta(0.00) c3(3) ///
 	           agpop(1 2 7) ///
                tmax(200) report("`outfolder'\zaatari_report_open.pdf")

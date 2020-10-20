@@ -1,4 +1,4 @@
-program define epi_popdb
+program define epipopdb
 
 	version 16.0
 	
@@ -14,7 +14,7 @@ program define epi_popdb
 	matrix `F'=r(F)
 	local popsize=r(N)
 
-	epi_pop , popsize(`popsize') popstruct("`F'") ///
+	epipop simulate deterministic, popsize(`popsize') popstruct("`F'") ///
 	           agpop(1 2 7) /* for the moment don't change this */ ///
 			   `options'
 end

@@ -2,6 +2,10 @@
     version 16.0
     /* This is a matrix version not using microdata */
 	
+	adopath ++ "..\code\"
+	adopath ++ "..\..\epimodels\code"
+	mata mata mlib index
+	
 	local outfolder="C:\temp\"              // adjust this if necessary.
 
     matrix popF = ///
@@ -19,14 +23,14 @@
 
     local popsize = 83464
 
-    epi_pop , popsize(`popsize') popstruct("popF") ///
+    epipop simulate deterministic, popsize(`popsize') popstruct("popF") ///
                r0(3.0) theta(0.00) c3(3) ///
                agpop(1 2 7) ///
                tmax(200) report("`outfolder'\zaatari_report3m.pdf") 
 
     clear
 
-    epi_pop , popsize(`popsize') popstruct("popF") ///
+    epipop simulate deterministic, popsize(`popsize') popstruct("popF") ///
                r0(3.0) theta(0.00) c3(1) ///
                agpop(1 2 7) ///
                tmax(200) report("`outfolder'\zaatari_report1m.pdf") 

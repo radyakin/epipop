@@ -8,7 +8,7 @@ BEGIN
   IMSS_Mexico
 END
 
-DIALOG params, label("epi_pop") tabtitle("Model parameters")
+DIALOG params, label("epipop") tabtitle("Model parameters")
 BEGIN
 		   
   TEXT     tx_r0      10  10  390  ., label("R0:")
@@ -87,7 +87,7 @@ END
 
 PROGRAM command
 BEGIN
-    put "epi_popdb "
+    put "epipopdb "
 	beginoptions
 	   optionarg params.ed_r0
 	   optionarg params.ed_theta

@@ -1,123 +1,4 @@
-program define popreport
-	syntax [varlist(default=none)], modelname(string) modelparams(string) ///
-	                [modelgraph(string)] [appendixgraphs(string)] ///
-					[results(string)] [popstruct(string)] ///
-					[simparams(string)] [reflethality(string)] ///
-					save(string)
-
-	if (strlen(`"`modelparams'"')>40) local br `"`=char(10)'"'
-
-	mata epimodels_about()
-
-	putpdf begin
-	putpdf paragraph
-	putpdf text ("EPIMODELS Population Report"), bold font("Helvetica",28,steelblue)
-	putpdf paragraph
-	putpdf text ("This report was generated on `c(current_date)'"), font("Helvetica",16,steelblue)
-
-	putpdf paragraph
-	putpdf text ("`modelname' model with parameters:`br'`modelparams'."), bold
-
-
-	putstaticimage "epimodels_sch_`modelname'.png" // model scheme
-	putstaticimage "epimodels_eq_`modelname'.png" // model equations
-
-	if (`"`modelgraph'"'!="") {
-		putpdf paragraph
-		putpdf image `"`modelgraph'"'
-	}
-
-	putpdf paragraph
-	putpdf text ("Generated with EPIMODELS version `epimodels_version' from `compile_date' built for Stata v`compile_version'"), font("Helvetica",12,steelblue)
-	putpdf paragraph
-	putpdf text ("For more information, visit EPIMODELS' homepage: http://www.radyakin.org/stata/epimodels/"), font("Helvetica",12,steelblue)
-
-	if (`"`popstruct'"'!="") | (`"`simparams'"'!="") | (`"`reflethality'"'!=""){
-		putpdf pagebreak
-		if (`"`popstruct'"'!="") {
-			// include population structure
-			putpdf paragraph , halign(center)
-			putpdf text ("Population Structure, %"), font("Helvetica",28,steelblue)
-			puttextfile `"`popstruct'"'
-		}
-		if (`"`reflethality'"'!="") {
-			// include reference lethality data
-			putpdf paragraph , halign(center)
-			putpdf text ("Reference Lethality Probabilities"), font("Helvetica",28,steelblue)
-			puttextfile `"`reflethality'"'
-		}
-		if (`"`simparams'"'!="") {
-			// include simulation parameters
-			putpdf paragraph , halign(center)
-			putpdf text ("Simulation parameters"), font("Helvetica",28,steelblue)
-			puttextfile `"`simparams'"'
-		}
-	}
-
-	putpdf pagebreak
-	putpdf paragraph , halign(center)
-	putpdf text ("Simulation results"), font("Helvetica",28,steelblue)
-
-	puttextfile `"`results'"'
-
-	if (`"`varlist'"'!="") {
-		putpdf table t=data(`varlist'), varnames
-		putpdf table t(.,.), halign(center) valign(center) nformat(%12.0fc) font("Consolas",8)
-		putpdf table t(1,.), bgcolor("aliceblue")
-		putpdf paragraph
-	}
-
-	foreach v in `varlist' {
-		putpdf text ("`v': `:variable label `v''`=char(10)'")
-	}
-
-	// optional appendix
-	if (`"`appendixgraphs'"'!="") {
-	    putpdf sectionbreak, landscape
-		local first=1
-	    foreach f in `appendixgraphs' {
-		    if (!`first') {
-			    putpdf pagebreak
-				local first=0
-		    }
-			putpdf paragraph
-			putpdf image `"`f'"'
-		}
-	}
-
-	putpdf save `"`save'"' , replace
-end
-
-program define puttextfile
-	syntax [anything]
-
-	if (`"`anything'"'!="") {
-	    putpdf paragraph
-	    file open fh using `anything', read text
-		file read fh line
-		while r(eof)==0 {
-		    putpdf text (`"`line'`=char(10)' "'), font("Consolas", 9)
-			file read fh line
-		}
-		file close fh
-	}
-end
-
-program define putstaticimage
-
-	syntax [anything], [width(real 5) linebreak(real 2)]
-
-	if (`"`anything'"'=="") exit
-
-	capture findfile `anything'
-	if !_rc {
-		putpdf paragraph, halign(center)
-		putpdf text ("          ")
-		putpdf image "`=r(fn)'" , width(`width') linebreak(`linebreak')
-    }
-end
-
-program define epi_pop
+program define epipop_deterministic
     syntax , ///
     	popsize(integer)  /* Population size N                                    */ ///
 		popstruct(string) /* Relative frequencies F                               */ ///
@@ -311,5 +192,125 @@ program define epi_pop
 	    capture erase `"`appfile'"'
 	}
 end
+
+program define popreport
+	syntax [varlist(default=none)], modelname(string) modelparams(string) ///
+	                [modelgraph(string)] [appendixgraphs(string)] ///
+					[results(string)] [popstruct(string)] ///
+					[simparams(string)] [reflethality(string)] ///
+					save(string)
+
+	if (strlen(`"`modelparams'"')>40) local br `"`=char(10)'"'
+
+	mata epimodels_about()
+
+	putpdf begin
+	putpdf paragraph
+	putpdf text ("EPIMODELS Population Report"), bold font("Helvetica",28,steelblue)
+	putpdf paragraph
+	putpdf text ("This report was generated on `c(current_date)'"), font("Helvetica",16,steelblue)
+
+	putpdf paragraph
+	putpdf text ("`modelname' model with parameters:`br'`modelparams'."), bold
+
+
+	putstaticimage "epimodels_sch_`modelname'.png" // model scheme
+	putstaticimage "epimodels_eq_`modelname'.png" // model equations
+
+	if (`"`modelgraph'"'!="") {
+		putpdf paragraph
+		putpdf image `"`modelgraph'"'
+	}
+
+	putpdf paragraph
+	putpdf text ("Generated with EPIMODELS version `epimodels_version' from `compile_date' built for Stata v`compile_version'"), font("Helvetica",12,steelblue)
+	putpdf paragraph
+	putpdf text ("For more information, visit EPIMODELS' homepage: http://www.radyakin.org/stata/epimodels/"), font("Helvetica",12,steelblue)
+
+	if (`"`popstruct'"'!="") | (`"`simparams'"'!="") | (`"`reflethality'"'!=""){
+		putpdf pagebreak
+		if (`"`popstruct'"'!="") {
+			// include population structure
+			putpdf paragraph , halign(center)
+			putpdf text ("Population Structure, %"), font("Helvetica",28,steelblue)
+			puttextfile `"`popstruct'"'
+		}
+		if (`"`reflethality'"'!="") {
+			// include reference lethality data
+			putpdf paragraph , halign(center)
+			putpdf text ("Reference Lethality Probabilities"), font("Helvetica",28,steelblue)
+			puttextfile `"`reflethality'"'
+		}
+		if (`"`simparams'"'!="") {
+			// include simulation parameters
+			putpdf paragraph , halign(center)
+			putpdf text ("Simulation parameters"), font("Helvetica",28,steelblue)
+			puttextfile `"`simparams'"'
+		}
+	}
+
+	putpdf pagebreak
+	putpdf paragraph , halign(center)
+	putpdf text ("Simulation results"), font("Helvetica",28,steelblue)
+
+	puttextfile `"`results'"'
+
+	if (`"`varlist'"'!="") {
+		putpdf table t=data(`varlist'), varnames
+		putpdf table t(.,.), halign(center) valign(center) nformat(%12.0fc) font("Consolas",8)
+		putpdf table t(1,.), bgcolor("aliceblue")
+		putpdf paragraph
+	}
+
+	foreach v in `varlist' {
+		putpdf text ("`v': `:variable label `v''`=char(10)'")
+	}
+
+	// optional appendix
+	if (`"`appendixgraphs'"'!="") {
+	    putpdf sectionbreak, landscape
+		local first=1
+	    foreach f in `appendixgraphs' {
+		    if (!`first') {
+			    putpdf pagebreak
+				local first=0
+		    }
+			putpdf paragraph
+			putpdf image `"`f'"'
+		}
+	}
+
+	putpdf save `"`save'"' , replace
+end
+
+program define puttextfile
+	syntax [anything]
+
+	if (`"`anything'"'!="") {
+	    putpdf paragraph
+	    file open fh using `anything', read text
+		file read fh line
+		while r(eof)==0 {
+		    putpdf text (`"`line'`=char(10)' "'), font("Consolas", 9)
+			file read fh line
+		}
+		file close fh
+	}
+end
+
+program define putstaticimage
+
+	syntax [anything], [width(real 5) linebreak(real 2)]
+
+	if (`"`anything'"'=="") exit
+
+	capture findfile `anything'
+	if !_rc {
+		putpdf paragraph, halign(center)
+		putpdf text ("          ")
+		putpdf image "`=r(fn)'" , width(`width') linebreak(`linebreak')
+    }
+end
+
 
 // END OF FILE

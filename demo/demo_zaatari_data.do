@@ -2,6 +2,10 @@
 	clear all
 	version 16.0
 	/* This is a data version using microdata */
+		
+	adopath ++ "..\code\"
+	adopath ++ "..\..\epimodels\code"
+	mata mata mlib index
 	
 	local zaatarifile="C:\data\zaatari.dta" // adjust this to where the data is.
 	local outfolder="C:\temp\"              // adjust this if necessary.
@@ -25,13 +29,13 @@
 	frame change `cf'
 	frame drop `tframe'	
 
-    epi_pop , popsize(`popsize') popstruct("popF") ///
+    epipop simulate deterministic, popsize(`popsize') popstruct("popF") ///
 	           r0(3.0) theta(0.00) c3(3) ///
 	           agpop(1 2 7) ///
                tmax(200) report("`outfolder'\zaatari_report3d.pdf") 
     clear
 			   
-    epi_pop , popsize(`popsize') popstruct("popF") ///
+    epipop simulate deterministic, popsize(`popsize') popstruct("popF") ///
 	           r0(3.0) theta(0.00) c3(1) ///
 	           agpop(1 2 7) ///
                tmax(200) report("`outfolder'\zaatari_report1d.pdf") 
