@@ -1,0 +1,27 @@
+v 3
+d 'epipop': epidemiological modeling of closed population
+d by Carlos M Hernandez-Suarez, Sergiy Radyakin, Paolo Verme
+d
+d KW: epidemiology
+d KW: virus
+d KW: simulation
+d
+d Requires: Stata version 16.0 or newer
+d 
+d Distribution-Date: 20201001
+d
+d Author: Carlos M Hernandez-Suarez, Professor,
+          Universidad de Colima, Mexico
+d         Sergiy Radyakin, Senior Economist,
+d         Development Economics Data Group, The World Bank
+d	  Paolo Verme,
+d         Fragility, Conflict and Violence, The World Bank
+d
+* COMMON FILES
+f epi_pop.ado
+f epi_pop.dlg
+f epi_pop.sthlp
+f epi_popdb.ado
+f epi_refdata_IMSS_Mexico.ado
+f lepipop.mlib
+* END OF FILE
