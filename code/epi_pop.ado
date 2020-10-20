@@ -117,8 +117,6 @@ program define putstaticimage
     }
 end
 
-// end of file
-
 program define epi_pop
     syntax , ///
     	popsize(integer)  /* Population size N                                    */ ///
@@ -313,8 +311,5 @@ program define epi_pop
 	    capture erase `"`appfile'"'
 	}
 end
-
-
-
 
 // END OF FILE
