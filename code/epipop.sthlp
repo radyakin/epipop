@@ -64,7 +64,10 @@ etc.{p_end}
 of the model is available in {it: C. M. Hernandes-Suarez et al. (2020)}, see the reference 
 below. {p_end}
 
-{pstd} {cmd: epipop} requires {cmd: epimodels}, see {browse "http://www.radyakin.org/stata/epimodels/":epimodels homepage}.
+{pstd} {cmd: epipop} requires {cmd: epimodels} by the same authors, see 
+{browse "http://www.radyakin.org/stata/epimodels/":epimodels homepage}, and 
+function mm_cond() from the {cmd:moremata} package by Benn Jann, (available 
+from {browse "https://ideas.repec.org/c/boc/bocode/s455001.html":SSC}).
 {p_end}
 
 

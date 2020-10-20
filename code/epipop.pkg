@@ -6,7 +6,8 @@ d KW: epidemiology
 d KW: virus
 d KW: simulation
 d
-d Requires: Stata version 16.0 or newer
+d Requires: Stata version 16.0 or newer, 
+d           epimodels and moremata packages
 d 
 d Distribution-Date: 20201001
 d
