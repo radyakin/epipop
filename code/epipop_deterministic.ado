@@ -1,4 +1,8 @@
 program define epipop_deterministic
+    version 16.0
+	
+	epipop nothing
+	
     syntax , ///
     	popsize(integer)  /* Population size N                                    */ ///
 		popstruct(string) /* Relative frequencies F                               */ ///
@@ -194,6 +198,11 @@ program define epipop_deterministic
 end
 
 program define popreport
+    version 16.0
+	
+	local tfont `""Helvetica",28,steelblue"'
+	local sfont `""Helvetica",12,steelblue"'
+
 	syntax [varlist(default=none)], modelname(string) modelparams(string) ///
 	                [modelgraph(string)] [appendixgraphs(string)] ///
 					[results(string)] [popstruct(string)] ///
@@ -201,21 +210,19 @@ program define popreport
 					save(string)
 
 	if (strlen(`"`modelparams'"')>40) local br `"`=char(10)'"'
-
-	mata epimodels_about()
-
+	
 	putpdf begin
 	putpdf paragraph
-	putpdf text ("EPIMODELS Population Report"), bold font("Helvetica",28,steelblue)
+	putpdf text ("EPIPOP Population Report"), bold font(`tfont')
 	putpdf paragraph
-	putpdf text ("This report was generated on `c(current_date)'"), font("Helvetica",16,steelblue)
-
+	putpdf text ("This report was generated on `c(current_date)'"), font(`sfont')
+	local s `"`modelname' model."'
+	if (`"`modelparams'"'!="") local s `"`modelname' model with parameters:`br'`modelparams'."'
 	putpdf paragraph
-	putpdf text ("`modelname' model with parameters:`br'`modelparams'."), bold
-
-
-	putstaticimage "epimodels_sch_`modelname'.png" // model scheme
-	putstaticimage "epimodels_eq_`modelname'.png" // model equations
+	putpdf text (`"`s'"'), bold
+	
+	epipop pdfreport putstaticimage "epimodels_sch_`modelname'.png" // model scheme
+	epipop pdfreport putstaticimage "epimodels_eq_`modelname'.png" // model equations
 
 	if (`"`modelgraph'"'!="") {
 		putpdf paragraph
@@ -223,37 +230,29 @@ program define popreport
 	}
 
 	putpdf paragraph
-	putpdf text ("Generated with EPIMODELS version `epimodels_version' from `compile_date' built for Stata v`compile_version'"), font("Helvetica",12,steelblue)
+	putpdf text ("Generated with"), font(`sfont')
+	mata epipop_about()
 	putpdf paragraph
-	putpdf text ("For more information, visit EPIMODELS' homepage: http://www.radyakin.org/stata/epimodels/"), font("Helvetica",12,steelblue)
+	putpdf text ("EPIPOP version `epipop_version' from `compile_date' built for Stata v`compile_version'"), linebreak(1)
+	putpdf text ("For more information, visit EPIPOP' homepage: http://www.radyakin.org/stata/epipop/")
+	mata epimodels_about()
+	putpdf paragraph
+	putpdf text ("EPIMODELS version `epimodels_version' from `compile_date' built for Stata v`compile_version'"), linebreak(1)
+	putpdf text ("For more information, visit EPIMODELS' homepage: http://www.radyakin.org/stata/epimodels/")
 
 	if (`"`popstruct'"'!="") | (`"`simparams'"'!="") | (`"`reflethality'"'!=""){
-		putpdf pagebreak
-		if (`"`popstruct'"'!="") {
-			// include population structure
-			putpdf paragraph , halign(center)
-			putpdf text ("Population Structure, %"), font("Helvetica",28,steelblue)
-			puttextfile `"`popstruct'"'
-		}
-		if (`"`reflethality'"'!="") {
-			// include reference lethality data
-			putpdf paragraph , halign(center)
-			putpdf text ("Reference Lethality Probabilities"), font("Helvetica",28,steelblue)
-			puttextfile `"`reflethality'"'
-		}
-		if (`"`simparams'"'!="") {
-			// include simulation parameters
-			putpdf paragraph , halign(center)
-			putpdf text ("Simulation parameters"), font("Helvetica",28,steelblue)
-			puttextfile `"`simparams'"'
-		}
+		putpdf pagebreak		
+		epipop pdfreport putoptionalparagraph `"`popstruct'"', ///
+		  title("Population Structure, %") font(`tfont')
+		epipop pdfreport putoptionalparagraph `"`reflethality'"', ///
+		  title("Reference Lethality Probabilities") font(`tfont')
+		epipop pdfreport putoptionalparagraph `"`simparams'"', ///
+		  title("Simulation parameters") font(`tfont')
 	}
 
 	putpdf pagebreak
-	putpdf paragraph , halign(center)
-	putpdf text ("Simulation results"), font("Helvetica",28,steelblue)
-
-	puttextfile `"`results'"'
+	epipop pdfreport putoptionalparagraph `"`results'"', ///
+		  title("Simulation results") font(`tfont')
 
 	if (`"`varlist'"'!="") {
 		putpdf table t=data(`varlist'), varnames
@@ -266,51 +265,10 @@ program define popreport
 		putpdf text ("`v': `:variable label `v''`=char(10)'")
 	}
 
-	// optional appendix
-	if (`"`appendixgraphs'"'!="") {
-	    putpdf sectionbreak, landscape
-		local first=1
-	    foreach f in `appendixgraphs' {
-		    if (!`first') {
-			    putpdf pagebreak
-				local first=0
-		    }
-			putpdf paragraph
-			putpdf image `"`f'"'
-		}
-	}
+	// optional appendix	
+	epipop pdfreport putallgraphfiles, graphs(`appendixgraphs') landscape
 
 	putpdf save `"`save'"' , replace
 end
-
-program define puttextfile
-	syntax [anything]
-
-	if (`"`anything'"'!="") {
-	    putpdf paragraph
-	    file open fh using `anything', read text
-		file read fh line
-		while r(eof)==0 {
-		    putpdf text (`"`line'`=char(10)' "'), font("Consolas", 9)
-			file read fh line
-		}
-		file close fh
-	}
-end
-
-program define putstaticimage
-
-	syntax [anything], [width(real 5) linebreak(real 2)]
-
-	if (`"`anything'"'=="") exit
-
-	capture findfile `anything'
-	if !_rc {
-		putpdf paragraph, halign(center)
-		putpdf text ("          ")
-		putpdf image "`=r(fn)'" , width(`width') linebreak(`linebreak')
-    }
-end
-
 
 // END OF FILE

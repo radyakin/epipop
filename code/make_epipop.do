@@ -11,10 +11,68 @@ mata
 real matrix epipop_about() {
     st_local("compile_date", "`compdate'")
 	st_local("compile_version", "`vers'")
-	st_local("epimodels_version", "2.1.1")
+	st_local("epipop_version", "1.1.1")
 }
 
+real function versioncompare(s1,s2) {
+     /* Compare two versions with arbitrary number of subnumbers.
+	    For example:
+		  5.34 vs 3.75.02
+		  or
+		  7.135.01 vs 7.135.04
+		
+		Different number of subcomponents is permitted. Zeros are implied,
+		where the value is shorter, e.g. comparing 5 vs 4.89 is same as 
+		comparing 5.00 vs 4.89.
+		
+		Each component is assumed a number and compared numerically, 
+		e.g.: 5.11>5.2 but 5.11<5.20
+		
+		An empty version is treated as version 0.
+		  
+	    Returns: 
+	      -1 when v1 is smaller than v2
+           0 when v1 is same as v2
+           1 when v1 is larger than v2
+		   
+		Minimal error handling, e.g. for the following situations:
+		   - version starts or ends with a dot;
+		   - version contains any non-numeric characters except a dot;
+		   - two dots are one after another.
+     */
+	 
+	 delim="."   // delimiter used to separate the subcomponents of the versions.
+	 
+     v1=tokens(s1,delim)
+	 v2=tokens(s2,delim)
+	 n=min((cols(v1),cols(v2)))
+	 for(i=1;i<=n;i++) {
+	   if (v1[i]==delim & v2[i]==delim) continue
+	   
+	   n1=strtoreal(v1[i])
+	   n2=strtoreal(v2[i])
+	   
+	   if (n1==. | n2==.) exit(error(109))
+	   
+	   if (n1<n2) {
+		 return(-1)
+	   }
+	   if (n1>n2) {
+		 return(1)
+	   }
+	 }
+	 
+	 if (cols(v1)>cols(v2)) {
+		 return(1)
+	 }
+	 
+	 if (cols(v1)<cols(v2)) {
+		 return(-1)
+	 }
 
+	 return(0)
+   }
+   
 void function epi_sim_siz(string fmatname, real N, real R0, real theta, ///
                     real C1, real C2, real C3, real tmax, string agpop) {
 
@@ -325,6 +383,7 @@ real matrix stochPois(real N, real matrix c, real R0, real theta, real C3) {
 
 mata mlib create lepipop, replace
 mata mlib add lepipop epipop_about()
+mata mlib add lepipop versioncompare()
 mata mlib add lepipop epi_sim_siz()
 
 mata mlib add lepipop multinomial()
@@ -333,5 +392,18 @@ mata mlib add lepipop stochPois()
 mata mlib index
 
 end
+
+
+mata assert(versioncompare("2.34","5.11")==-1)
+mata assert(versioncompare("5.34.11","5.11.72")==1)
+mata assert(versioncompare("19.02.133","19.02.133")==0)
+mata assert(versioncompare("19.02.133","19.02.133.99")==-1)
+mata assert(versioncompare("02.1.1","2.1.1")==0)
+capture noisily mata versioncompare("a.b.c","2.6.7.8.9")
+assert _rc==109
+
+mata assert(versioncompare("","1.0")==-1)
+
+display "All OK"
 
 // END OF FILE

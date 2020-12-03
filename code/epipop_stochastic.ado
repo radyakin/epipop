@@ -1,12 +1,20 @@
 program define epipop_stochastic
 
     version 16.0
+	
+	epipop nothing
+	
 	local agegroups "0,10,20,30,40,50,60,130"
 	syntax , agevar(string) ///
 	         sexvar(string) malecode(integer) femalecode(integer) ///
 			 r0(real) [theta(real 0.0) c1(real 0.0) c2(real 0.0) c3(real 1.0)] ///
-			 [repeat(integer 100)]
-			 
+			 [repeat(integer 100)] [report(string)]
+
+	if (`repeat'<0) {
+	  display as error "Number of repetitions must be positive."
+	  error 101
+	}
+	
 	fixages , agevar(`agevar') agegroups("`agegroups'") ///
 	      sexvar(`sexvar') malecode(`malecode') femalecode(`femalecode') 
 
@@ -16,7 +24,7 @@ program define epipop_stochastic
 
     simulate , n(`N') r0(`r0') theta(`theta') ///
            c1(`c1') c2(`c2') c3(`c3') cname("c") fname("F") ///
-		   repeat(`repeat') 
+		   repeat(`repeat') report(`"`report'"')
 end
 
 
@@ -282,7 +290,12 @@ program define simulate
 	syntax , n(integer) cname(string) fname(string) ///
 	         r0(real) theta(real) ///
 	         c1(real) c2(real) c3(real) ///
-			 [repeat(integer 100)] 
+			 [repeat(integer 100)] [report(string)] 
+			 
+	if (`repeat'<=0) {
+	  display as error "Number of repetitions must be positive."
+	  error 101
+	}
 			 
 	tempname bedframec bedframeh frame dataframe
 	
@@ -309,7 +322,7 @@ program define simulate
 	
     dographs, frame(`frame') cname("`cname'") ///
 	          dataframe("`dataframe'") n(`n') ///
-			  bedframec("`bedframec'") bedframeh("`bedframeh'")
+			  bedframec("`bedframec'") bedframeh("`bedframeh'") report(`"`report'"')
 end
 
 program define newassign, rclass
@@ -363,7 +376,7 @@ program dographs
     version 16.0
 	syntax , n(integer)  ///
 	[frame(string)] cname(string) dataframe(string) ///
-	[bedframec(string) bedframeh(string)]
+	[bedframec(string) bedframeh(string)] [report(string)]
 
 	foreach b in c h {
 	
@@ -384,13 +397,15 @@ program dographs
 		contract `high2' `high' `mean' `low' `low2' percent
 		
 		sort percent
+		local gname `"Beds_`=strupper("`b'")'"'
+		capture graph drop `gname'
 		twoway (area `high2' `high' `mean' `low' `low2' percent,  ///
 				  fc(gs9 gs3 gs3 gs9 white) lc(white%0 white%0 white%0 white%0 white%0) ///
 				  title(`"`varlbl'"') ytitle("Beds required") scale(0.75) ///
 				  legend(cols(2) order( 2 1 ) label(6 "`varlbl'") ///
 				  label(2 "68%-Confidence area (mean ± 1 S.D.)") ///
 				  label(1 "95%-Confidence area (mean ± 2 S.D.)") size(small)))  ///
-				  (line `mean' percent, lc(red) name(`"Beds_`=strupper("`b'")'"')) 
+				  (line `mean' percent, lc(red) name(`"`gname'"')) 
 				  
 		restore
 		drop `high2' `high' `mean' `low' `low2'
@@ -409,6 +424,10 @@ program dographs
 	
 	local mcolnames "t S Z I H R RT C D"
 	
+	tempfile resultslog
+
+	log using `"`resultslog'"', text replace name(outlog) nomsg // ##############
+			
 	if (`"`dataframe'"'!="") {
 		frame change `dataframe'
 		
@@ -423,28 +442,30 @@ program dographs
 		  local peak = r(min)
 		  noisily display " {break}{text}Peak of infections (I+Z) at t=" as result %6.2f `peak'
 		restore
-		
+			
 		preserve
-		  generate DAY=floor(t)
-		  sort DAY iteration, stable
-		  by DAY iteration: generate ismax=(_n==_N) 
-		  by DAY iteration: keep if ismax==1  // leave one obs per day
-		  replace t=DAY
-		  drop DAY
-		  summarize t, meanonly
-		  local mx=r(max)		  
-		  tempvar wt
-		  quietly by iteration (t), sort: generate long `wt' = cond(_n == _N, `mx'+1-t, 1)
-		  quietly expand `wt'
-		  drop `wt'
-		  quietly by iteration t, sort: replace t = t + _n - 1
-		  
-		  collapse S Z I H R RT C D IZ ///
-		          (sd) SD_S=S (sd)SD_Z=Z (sd) SD_I=I (sd) SD_H=H (sd) SD_R=R ///
-				  (sd) SD_RT=RT (sd) SD_C=C (sd) SD_D=D (sd) SD_IZ=IZ, by(t)
-		  
-		  summarize t, meanonly
-		  local days=round(r(max))
+		  quietly {
+			  generate DAY=floor(t)
+			  sort DAY iteration, stable
+			  by DAY iteration: generate ismax=(_n==_N) 
+			  by DAY iteration: keep if ismax==1  // leave one obs per day
+			  replace t=DAY
+			  drop DAY
+			  summarize t, meanonly
+			  local mx=r(max)		  
+			  tempvar wt
+			  quietly by iteration (t), sort: generate long `wt' = cond(_n == _N, `mx'+1-t, 1)
+			  quietly expand `wt'
+			  drop `wt'
+			  quietly by iteration t, sort: replace t = t + _n - 1
+			  
+			  collapse S Z I H R RT C D IZ ///
+					  (sd) SD_S=S (sd)SD_Z=Z (sd) SD_I=I (sd) SD_H=H (sd) SD_R=R ///
+					  (sd) SD_RT=RT (sd) SD_C=C (sd) SD_D=D (sd) SD_IZ=IZ, by(t)
+			  
+			  summarize t, meanonly
+			  local days=round(r(max))
+		  }
 		  epimodels_util ditable t, days(`days') datefmt("%dCY-N-D") ///
 		  mcolnames("`mcolnames'") ivar("IZ") varlabels(`"`varlabels'"') ///
 		  ylabel("Population") modeltitle("SIZ-Model") digits(0) stdev comma("c")
@@ -477,15 +498,24 @@ program dographs
 				}
 				sort t, stable
 				generate float peak=`peak'
+				
+				capture graph drop "Group_`z'"
 
 				twoway (area `high2' `high' `mean' `low' `low2' t,  ///
-				  fc(gs9 gs3 gs3 gs9 white) lc(white%0 white%0 white%0 white%0 white%0) ///
+				  fc(gs9 gs3 gs3 gs9 white) ///
+				  lc(white%0 white%0 white%0 white%0 white%0) ///
 				  title(`"`varlbl'"') scale(0.75) ///
-				  legend( cols(2) order( 2 1 ) label(6 "`varlbl'") ///
-				  label(2 "68%-Confidence area (mean ± 1 S.D.)") ///
-				  label(1 "95%-Confidence area (mean ± 2 S.D.)") size(small)))  ///
+				  legend( ///
+				      cols(2) order( 2 1 ) ///
+					  label(6 "`varlbl'") ///
+				      label(2 "68%-Confidence area (mean ± 1 S.D.)") ///
+				      label(1 "95%-Confidence area (mean ± 2 S.D.)") ///
+					  size(small)))  ///
 				  (line `mean' t, lc(red) name("Group_`z'")) ///
-				  (dropline `high2' `low2' peak, mcolor(none none) lpattern("--" "--") lcolor(green green) lwidth(vthin vthin) xline(`peak', lpattern("--") lcolor(green) lwidth(vthin))) 
+				  (dropline `high2' `low2' peak, mcolor(none none) ///
+				     lpattern("--" "--") lcolor(green green) ///
+					 lwidth(vthin vthin) xline(`peak', lpattern("--") ///
+					 lcolor(green) lwidth(vthin))) 
 			restore
 		}
 		
@@ -590,13 +620,121 @@ program dographs
 	display `"{text}      - hospitalized: {col 38}{result:`=string(`r(mean)',"`fmt'")' (`=string(`r(sd)',"`fmt'")')}"'
 	quietly summarize bedicu
 	display `"{text}      - ICUs: {col 38}{result:`=string(`r(mean)',"`fmt'")' (`=string(`r(sd)',"`fmt'")')}"'
+	log close outlog
 	
-    quietly {		
+	
+    quietly {
+	    capture graph drop totinfected
 		kdensity totinfected, name(totinfected)
+		capture graph drop t1death
 		kdensity t1death, name(t1death)
+		capture graph drop toticu
 		kdensity toticu, name(toticu)
 	}
+	
+	popreport /*t S Z I H R RT C D*/, ///
+		 modelname("siz") modelparams("`modelparams'") ///
+		 appendixgraphs(`appendixfiles') ///
+		 results(`"`resultslog'"') reflethality(`reflethality') ///
+		 popstruct(`"`populog'"') simparams(`"`simparams'"') ///
+		 save(`report')
+	
     clear	
+end
+
+
+
+program define popreport
+    version 16.0
+	
+	local ffontface "Consolas"
+	local fontface "Helvetica"
+	local fontcolor "steelblue"
+	local tfont `""`fontface'",28,`fontcolor'"'
+	local sfont `""`fontface'",12,`fontcolor'"'
+	local imagewidth=1920
+
+	syntax [varlist(default=none)], modelname(string) [modelparams(string)] ///
+	                [modelgraph(string)] [appendixgraphs(string)] ///
+					[results(string)] [popstruct(string)] ///
+					[simparams(string)] [reflethality(string)] ///
+					save(string)
+
+	if (strlen(`"`modelparams'"')>40) local br `"`=char(10)'"'
+	
+	putpdf begin
+	putpdf paragraph
+	putpdf text ("EPIPOP Population Report"), bold font(`tfont')
+	putpdf paragraph
+	putpdf text ("This report was generated on `c(current_date)'"), font(`sfont')
+	local s `"`modelname' model."'
+	if (`"`modelparams'"'!="") local s `"`modelname' model with parameters:`br'`modelparams'."'
+	putpdf paragraph
+	putpdf text (`"`s'"'), bold
+	
+	epipop pdfreport putstaticimage "epimodels_sch_`modelname'.png" // model scheme
+	epipop pdfreport putstaticimage "epimodels_eq_`modelname'.png" // model equations
+
+	if (`"`modelgraph'"'!="") {
+		putpdf paragraph
+		putpdf image `"`modelgraph'"'
+	}
+
+	putpdf paragraph
+	putpdf text ("Generated with"), font(`sfont')
+	mata epipop_about()
+	putpdf paragraph
+	putpdf text ("EPIPOP version `epipop_version' from `compile_date' built for Stata v`compile_version'"), linebreak(1)
+	putpdf text ("For more information, visit EPIPOP' homepage: http://www.radyakin.org/stata/epipop/")
+	mata epimodels_about()
+	putpdf paragraph
+	putpdf text ("EPIMODELS version `epimodels_version' from `compile_date' built for Stata v`compile_version'"), linebreak(1)
+	putpdf text ("For more information, visit EPIMODELS' homepage: http://www.radyakin.org/stata/epimodels/")
+
+	if (`"`popstruct'"'!="") | (`"`simparams'"'!="") | (`"`reflethality'"'!=""){
+		putpdf pagebreak		
+		epipop pdfreport putoptionalparagraph `"`popstruct'"', ///
+		  title("Population Structure, %") font(`tfont')
+		epipop pdfreport putoptionalparagraph `"`reflethality'"', ///
+		  title("Reference Lethality Probabilities") font(`tfont')
+		epipop pdfreport putoptionalparagraph `"`simparams'"', ///
+		  title("Simulation parameters") font(`tfont')
+	}
+
+	putpdf pagebreak
+	epipop pdfreport putoptionalparagraph `"`results'"', ///
+		  title("Simulation results") font(`tfont')
+
+	if (`"`varlist'"'!="") {
+		putpdf table t=data(`varlist'), varnames
+		putpdf table t(.,.), halign(center) valign(center) nformat(%12.0fc) font("`ffontface'",8)
+		putpdf table t(1,.), bgcolor("`fontcolor'")
+		putpdf paragraph
+	}
+
+	foreach v in `varlist' {
+		putpdf text ("`v': `:variable label `v''`=char(10)'")
+	}
+
+	// optional appendix	
+	local files ""
+	foreach f in Group_D Group_I Group_RT Group_Z Group_C Group_H Group_R Group_S Beds_H Beds_C totinfected toticu t1death {
+	  tempfile tmp
+	  while 1 {
+		  capture confirm file `"`tmp'.png"'
+		  if _rc continue, break
+		  tempfile tmp
+	  }
+	  local tname `"`tmp'.png"'
+	  quietly graph export "`tname'", name(`f') as(png) width(`imagewidth')
+	  local files `"`files' "`tname'""'
+	}
+	epipop pdfreport putallgraphfiles, graphs(`files') landscape
+
+	putpdf save `"`save'"' , replace
+	foreach f in `files' {
+	  erase `f'
+	}
 end
 
 program define fixages, rclass

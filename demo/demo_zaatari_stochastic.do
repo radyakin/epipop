@@ -8,10 +8,12 @@ mata mata mlib index
 
 use "C:\data\zaatari.dta"
 
+local outfolder="C:\temp\"              // adjust this if necessary.
+
 epipop simulate stochastic, agevar(dem_age) sexvar(dem_sex) ///
                malecode(2) femalecode(1) ///
 		       r0(3.0) theta(0.0) ///
 			   c1(0.0) c2(0.0) c3(3.0) ///
-			   repeat(10)
+			   repeat(10) report("`outfolder'\zaatari_report_stoch.pdf")
 
 // EOF
