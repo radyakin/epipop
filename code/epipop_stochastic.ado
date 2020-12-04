@@ -51,8 +51,8 @@ program stochpois, rclass
 	if _rc {
 	    display as error "Error! Parameter C2 was expected in percent [0%..100%]"
 		error 101
-	}
-
+	}	
+	
 	// Adjust R0 to reflect the effects C1 and C2:
     local r0=`r0'*(1-`c1'/100)*(1-`c2'/100)
 	tempname ccc
@@ -301,7 +301,39 @@ program define simulate
 	
     create_empty, frame(`frame') bedframec(`bedframec') bedframeh(`bedframeh') 
 	
-	display "{text}Running stochastic simulation of SIZ-model ({result:`repeat'} iterations)"
+	tempfile populog
+	set logtype text
+	quietly log using `"`populog'"', replace nomsg name(populog)
+	  tempname poppercent
+	  matrix `poppercent'=100*`fname'
+	  matrix list `poppercent', noheader format(%8.4f)
+	log close populog
+/*
+    // not reference lethality
+	
+	tempfile reflethality
+	set logtype text
+	quietly log using `"`reflethality'"', replace nomsg name(reflethality)
+	  matrix list `cname', noheader format(%12.8f)
+	log close reflethality
+*/
+	
+	tempfile simparams
+	set logtype text
+	local c=69
+	quietly log using `"`simparams'"', replace nomsg name(simparams)
+	    display as text " "
+    	display as text "Population size, N" _col(`c') as result `"`=strtrim(string(`n',"%10.0fc"))'"'
+		display as text "Basic reproduction number, R0" _col(`c') as result `"`=strtrim(string(`r0',"%8.5f"))'"'
+		display as text "Efficiency in contact trace and removal [0,1], theta" _col(`c') as result %8.6f `theta'
+	    display as text "Reduction in contact rate by social distance, proportion [0,1], C1" _col(`c') as result %8.6f `c1'
+		display as text "Reduction in contact rate by use of mask, proportion [0,1], C2" _col(`c') as result %8.6f `c2'
+		display as text "Increase severity for population conditions, C3" _col(`c') as result %8.6f `c3'
+		
+		display as text "Number of repetitions" _col(`c') as result `"`=strtrim(string(`repeat',"%10.0fc"))'"'
+	log close simparams
+	
+	display "{text}Running stochastic simulation of SIZ-model ({result:`repeat'} repetitions)"
 	forval i=1/`repeat' {
 		local flag=1
 		display "{text} Iteration: {result:`i'}"
@@ -322,7 +354,9 @@ program define simulate
 	
     dographs, frame(`frame') cname("`cname'") ///
 	          dataframe("`dataframe'") n(`n') ///
-			  bedframec("`bedframec'") bedframeh("`bedframeh'") report(`"`report'"')
+			  bedframec("`bedframec'") bedframeh("`bedframeh'") ///
+			  populog(`"`populog'"') reflethality(`reflethality') ///
+			  simparams(`"`simparams'"') report(`"`report'"')
 end
 
 program define newassign, rclass
@@ -376,7 +410,8 @@ program dographs
     version 16.0
 	syntax , n(integer)  ///
 	[frame(string)] cname(string) dataframe(string) ///
-	[bedframec(string) bedframeh(string)] [report(string)]
+	[bedframec(string) bedframeh(string)] ///
+	[populog(string) reflethality(string) simparams(string) report(string)]
 
 	foreach b in c h {
 	
@@ -440,7 +475,7 @@ program dographs
 		  quietly summarize `mean'
 		  quietly summarize t if `mean'>=r(max)
 		  local peak = r(min)
-		  noisily display " {break}{text}Peak of infections (I+Z) at t=" as result %6.2f `peak'
+		  //noisily display " {break}{text}Peak of infections (I+Z) at t=" as result %6.2f `peak'
 		restore
 			
 		preserve
@@ -673,7 +708,7 @@ program define popreport
 	putpdf text (`"`s'"'), bold
 	
 	epipop pdfreport putstaticimage "epimodels_sch_`modelname'.png" // model scheme
-	epipop pdfreport putstaticimage "epimodels_eq_`modelname'.png" // model equations
+	epipop pdfreport putstaticimage "epimodels_eq_`modelname'.png", width(4.2) // model equations
 
 	if (`"`modelgraph'"'!="") {
 		putpdf paragraph
@@ -690,7 +725,14 @@ program define popreport
 	putpdf paragraph
 	putpdf text ("EPIMODELS version `epimodels_version' from `compile_date' built for Stata v`compile_version'"), linebreak(1)
 	putpdf text ("For more information, visit EPIMODELS' homepage: http://www.radyakin.org/stata/epimodels/")
-
+	
+	putpdf paragraph
+	putpdf text ("Details:"), font(`sfont')
+	putpdf paragraph
+	putpdf text ("Carlos Hernandez-Suarez, Paolo Verme, Sergiy Radyakin, Efrén Murillo-Zamora. 2020"), linebreak(1)
+	putpdf text ("COVID-19 Outbreaks in Refugee Camps. A Simulation study"), linebreak(1)
+	putpdf text ("https://www.medrxiv.org/content/10.1101/2020.10.02.20204818v1.full.pdf")
+	
 	if (`"`popstruct'"'!="") | (`"`simparams'"'!="") | (`"`reflethality'"'!=""){
 		putpdf pagebreak		
 		epipop pdfreport putoptionalparagraph `"`popstruct'"', ///
