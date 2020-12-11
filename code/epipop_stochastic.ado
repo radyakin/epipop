@@ -708,7 +708,7 @@ program define popreport
 	putpdf text (`"`s'"'), bold
 	
 	epipop pdfreport putstaticimage "epimodels_sch_`modelname'.png" // model scheme
-	epipop pdfreport putstaticimage "epimodels_eq_`modelname'.png", width(4.2) // model equations
+	epipop pdfreport putstaticimage "epimodels_eq_`modelname'.png", width(4.0) // model equations
 
 	if (`"`modelgraph'"'!="") {
 		putpdf paragraph

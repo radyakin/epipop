@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <style>
+pre {
+    display: block;
+    font-family: monospace;
+    white-space: pre;
+    margin: 1em 0;
+    color:maroon;
+    background-color: #DDDDDD;
+}
+
+li {
+  margin: 12px 0;
+}
+
+img {
+  display:block;
+  max-width: 100%;
+}
+</style>
+
+    <title>EPIPOP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.css" />
+    <script src="https://code.jquery.com/jquery-1.6.4.min.js"></script>
+    <script>
+        var prevSelection = "tab1";
+        $("#navbar ul li").live("click",function(){
+            var newSelection = $(this).children("a").attr("data-tab-class");
+            $("."+prevSelection).addClass("ui-screen-hidden");
+            $("."+newSelection).removeClass("ui-screen-hidden");
+            prevSelection = newSelection;
+        });
+    </script>
+    <script src="https://code.jquery.com/mobile/1.0.1/jquery.mobile-1.0.1.min.js"></script>
+    <style>
+        .tab-content{
+            width:100%;
+            height:100%;
+            background-color:white;
+            border-bottom-left-radius:0.5em;
+            border-bottom-right-radius:0.5em;
+        }
+        .tab-content>div{
+            padding:15px;
+        }
+
+    </style>
+    </head>
+
+    <body>
+        <div data-role="page" data-theme="b">
+
+        <div data-role="header" data-theme="b">
+        <h1>EPIPOP - Stata module for epidemiological simulation</h1>
+        </div><!-- /header -->
+
+        <div data-role="content">
+            <div data-role="navbar" id="navbar">
+                <ul>
+                    <li><a href="#" class="ui-btn-active" data-tab-class="tab1">Description</a></li>
+                    <li><a href="#" data-tab-class="tab2">Installation</a></li>
+                    <li><a href="#" data-tab-class="tab3">Usage</a></li>
+                    <li><a href="#" data-tab-class="tab4">Documentation and Resources</a></li>
+                    <li><a href="#" data-tab-class="tab5">Author</a></li>
+                </ul>
+            </div>
+
+<div class="tab-content">
+
+<div class="tab1">
+<H2>Description</H2>
+<P><B>EPIPOP</B> conducts deterministic and stochastic simulations of the SIZ epidemiological model.</P>
+<P><B>EPIPOP</B> provides an interactive dialog, which can be of an advantage for
+novice users, and also can be called from the users' do and ado-files for massive
+or repetitive jobs.</P>
+<IMG src="images/epipop_dialog.png" width=437>
+</div>
+
+
+<div class="tab2 ui-screen-hidden">
+
+<H2>Installation</H2>
+<B>Epipop</B> requires:
+<UL>
+  <LI><B><A href="https://www.stata.com/why-use-stata/#">Stata</A></B> v16.0, and </LI>
+  <LI><B><A href="https://www.radyakin.org/stata/epimodels/">EPIMODELS</A></B> v2.1.1 or newer </LI>
+</UL>
+
+<P>To install <B>epipop</B> type literally the following in Stata's command prompt:</P>
+<PRE>
+
+ssc install epipop
+
+</PRE>
+<P>If <B>epimodels</B> is not installed, not found, or of incompatible version,
+the user will be notified with an error message:</P>
+<P><I>Incompatible version of -epimodels-. Please install or update the
+  -epimodels- package before using -epipop- package.</I></P>
+
+<H2>Update</H2>
+<P>To update <B>epipop</B> (after it is installed) type literally the following in Stata's command prompt:</P>
+<PRE>
+
+ado update epipop, update
+
+</PRE>
+<H2>Uninstallation</H2>
+<P>To uninstall <B>epipop</B> type literally the following in Stata's command prompt:</P>
+<PRE>
+
+ssc uninstall epipop
+
+</PRE>
+</div>
+
+
+
+<div class="tab3 ui-screen-hidden">
+
+<H2>Usage</H2>
+
+<P>To call the dialog for the EPIPOP module, type the following in the Stata command line:</P>
+<PRE>
+db epipop
+</PRE>
+<CENTER><IMG src="images/epipop_dialog.png" width=437 border=1></CENTER><BR><BR>
+The dialog will automatically decide whether to apply deterministic or
+stochastic versions of the model based on the value of the repetitions counter
+(1 for deterministic, more than 1 for stochastic model).
+
+<P>The commands destroy the data in memory. Typically it
+makes sense to clear memory before calling the model dialog
+or running it from the command line.</P>
+
+
+<H2>Deterministic model</H2>
+The deterministic model can be called directly from the user's programs with the
+command <TT>epipop simulate deterministic</TT> and the following parameters:
+<BR><BR>
+<TABLE>
+  <TR><TH bgcolor="aliceblue">Parameter</TH><TH bgcolor="aliceblue">Specification</TH><TH bgcolor="aliceblue">Meaning</TH></TR>
+  <TR><TD>agevar</TD><TD>Mandatory</TD><TD>Variable for age in years</TD></TR>
+  <TR><TD>sexvar</TD><TD>Mandatory</TD><TD>Variable for sex (numeric, categorical)</TD></TR>
+  <TR><TD>malecode</TD><TD>Mandatory</TD><TD>Code for males in the categorical sex variable</TD></TR>
+  <TR><TD>femalecode</TD><TD>Mandatory</TD><TD>Code for females in the categorical sex variable</TD></TR>
+  <TR><TD>r0         </TD><TD>Mandatory</TD><TD>Basic reproduction number                              </TD></TR>
+  <TR><TD>theta      </TD><TD>Mandatory</TD><TD>Efficiency in contact trace and removal [0,1]          </TD></TR>
+  <TR><TD>c1    </TD><TD>Optional, 0.00 is assumed if no value specified</TD><TD>%-reduction in contact rate by social distance [0,1]   </TD></TR>
+  <TR><TD>c2    </TD><TD>Optional, 0.00 is assumed if no value specified</TD><TD>%-reduction in contact rate by use of mask [0,1]       </TD></TR>
+  <TR><TD>c3    </TD><TD>Optional, 1.00 is assumed if no value specified</TD><TD>Increase severity for population conditions (default=1 (no increase))   </TD></TR>
+  <TR><TD>tmax     </TD><TD>Mandatory</TD><TD>Max time of the simulation (in days)                   </TD></TR>
+  <TR><TD>agpop     </TD><TD>Mandatory</TD><TD>Population aggregation parameters (row numbers), specify the following vector here: <TT><B>1 2 7</B></TT> </TD></TR>
+  <TR><TD>refdata</TD><TD>Optional, Mexico reference data is assumed if no value is specified</TD><TD>Reference data for mortality adjustment and rest of parameters   </TD></TR>
+  <TR><TD>report  </TD><TD>Optional, no report is produced if the value is not specified</TD><TD>Optional PDF report name (to be created)  </TD></TR>
+
+</TABLE>
+<H2>Example</H2>
+<PRE>
+epipop simulate deterministic, ///
+         popsize(`popsize') popstruct("popF") ///
+         r0(3.0) theta(0.00) c3(3) agpop(1 2 7) tmax(200) ///
+         report("c:\temp\results.pdf")
+</PRE>
+
+<H2>Stochastic model</H2>
+The stochastic model can be called directly from the user's programs with the
+command <TT>epipop simulate stochastic</TT> and the following parameters:
+  <BR><BR>
+  <TABLE>
+    <TR><TH bgcolor="aliceblue">Parameter</TH><TH bgcolor="aliceblue">Specification</TH><TH bgcolor="aliceblue">Meaning</TH></TR>
+    <TR><TD>agevar</TD><TD>Mandatory</TD><TD>Variable for age in years</TD></TR>
+    <TR><TD>sexvar</TD><TD>Mandatory</TD><TD>Variable for sex (numeric, categorical)</TD></TR>
+    <TR><TD>malecode</TD><TD>Mandatory</TD><TD>Code for males in the categorical sex variable</TD></TR>
+    <TR><TD>femalecode</TD><TD>Mandatory</TD><TD>Code for females in the categorical sex variable</TD></TR>
+    <TR><TD>r0         </TD><TD>Mandatory</TD><TD>Basic reproduction number                              </TD></TR>
+    <TR><TD>theta      </TD><TD>Mandatory</TD><TD>Efficiency in contact trace and removal [0,1]          </TD></TR>
+    <TR><TD>c1    </TD><TD>Optional, 0.00 is assumed if no value specified</TD><TD>%-reduction in contact rate by social distance [0,1]   </TD></TR>
+    <TR><TD>c2    </TD><TD>Optional, 0.00 is assumed if no value specified</TD><TD>%-reduction in contact rate by use of mask [0,1]       </TD></TR>
+    <TR><TD>c3    </TD><TD>Optional, 1.00 is assumed if no value specified</TD><TD>Increase severity for population conditions (default=1 (no increase))   </TD></TR>
+    <TR><TD>report  </TD><TD>Optional, no report is produced if the value is not specified</TD><TD>Optional PDF report name (to be created)  </TD></TR>
+    <TR><TD>repeat  </TD><TD>Optional, 100 is assumed if no value specified</TD><TD>Number of repetitions of the stochastic model</TD></TR>
+</TABLE>
+
+<BR><BR>
+<H2>Example</H2>
+<PRE>
+epipop simulate stochastic, ///
+  agevar(dem_age) sexvar(dem_sex) malecode(2) femalecode(1) ///
+  r0(3.0) theta(0.0) c1(0.0) c2(0.0) c3(3.0) ///
+  repeat(10) report("C:\temp\results.pdf")
+</PRE>
+
+
+</div>
+
+
+
+<div class="tab4 ui-screen-hidden">
+
+    <H2>Documentation and Resources</H2>
+    <P>Epipop implements modeling based on the SIZ model described in details in the following
+	<A href="https://www.medrxiv.org/content/10.1101/2020.10.02.20204818v1">publication</A>.
+
+</div>
+
+    <div class="tab5 ui-screen-hidden">
+	    <H2>Author</H2>
+	    <P><B>EPIMODELS</B> was written by
+      <A href="http://www.cienciamx.com/index.php/sociedad/personajes/16986-carlos-moises-hernandez-investigacion-social" target="_new">Carlos M Hernandez-Suarez</A>,
+	    <A href="https://econpapers.repec.org/RAS/pra699.htm" target="_new">Sergiy Radyakin</A>, and
+	    <A href="https://econpapers.repec.org/RAS/pve105.htm" target="_new">Paolo Verme</A>.</P>
+    </div>
+
+            </div>
+        </div><!-- /content -->
+
+        </div><!-- /page -->
+    </body>
+</html>

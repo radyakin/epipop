@@ -166,7 +166,7 @@ reference population.{p_end}
 
 {title:References}
 
-{pstd}CARLOS M Hernandez-Suarez, Paolo Verme, Sergiy Radyakin, Efren Murillo-Zamora (2020).{p_end}
+{pstd}Carlos M Hernandez-Suarez, Paolo Verme, Sergiy Radyakin, Efren Murillo-Zamora (2020).{p_end}
 {pstd} 
 COVID-19 Outbreaks in Refugee Camps. A simulation study. {browse "https://www.medrxiv.org/content/10.1101/2020.10.02.20204818v1":online}{p_end}
 

@@ -146,9 +146,14 @@ program define putallgraphfiles
 end
 
 program define putallgraphs
+
+	// this doesn't seem to work in Stata
+	// Reported here: 
+	//  https://www.statalist.org/forums/forum/general-stata-discussion/general/1584316
+	// No responses so far.
+	
 	version 16.0
-	set trace on
-	set tracedepth 1
+		
     syntax , graphs(string) [landscape]
 	if (`"`graphs'"'!="") {
 	    putpdf sectionbreak, `landscape'
